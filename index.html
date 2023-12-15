@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<style>
+  #color-board {
+    width: 400px;
+    height: 400px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-radius: 8px;
+  }
+
+  #slider {
+    -webkit-appearance: none;
+    width: 400px;
+    height: 20px;
+    border-radius: 20px;
+    background: linear-gradient(to right, red, yellow, green, cyan, blue, magenta, red);
+  }
+
+  #slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  #color-board .picker {
+    width: 10px;
+    height: 10px;
+    background: transparent;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    position: absolute;
+    cursor: pointer;
+  }
+
+  #color-value {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 16px;
+  }
+</style>
+<body>
+    <div id="color-board">
+        <div class="picker"></div>
+    </div>
+    <input type="range" id="slider" min="0" max="360">
+    <span id="color-value"></span>
+
+    <script>
+      const colorBoard = document.getElementById('color-board');
+      const slider = document.getElementById('slider');
+      const colorValue = document.getElementById('color-value');
+      const picker = document.querySelector('.picker');
+
+      function updateColor(hue, saturation = "100", lightness = "50") {
+        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        const gradient = `linear-gradient(to right, hsl(${hue}, 0%, 50%) 0%, hsl(${hue}, 100%, 50%) 100%), linear-gradient(to bottom, hsl(${hue}, 0%, 0%) 0%, hsl(${hue}, 0%, 100%) 100%)`;
+        colorBoard.style.background = gradient;
+        colorValue.textContent = color;
+      }
+
+      function movePicker(x, y) {
+        picker.style.left = x - picker.clientWidth / 2 + 'px';
+        picker.style.top = y - picker.clientHeight / 2 + 'px';
+      }
+
+      let isDragging = false;
+
+      colorBoard.addEventListener('mousedown', (e) => {
+
+        isDragging = true;
+        e.preventDefault(); // Prevent text selection while dragging
+      });
+
+
+    colorBoard.addEventListener('click', (e) => {
+        if (!isDragging) {
+          movePicker(e.clientX - colorBoard.getBoundingClientRect().left, e.clientY - colorBoard.getBoundingClientRect().top);
+          const saturation = Math.round(((e.clientX - colorBoard.getBoundingClientRect().left) / colorBoard.offsetWidth) * 100);
+          const lightness = Math.round(100 - ((e.clientY - colorBoard.getBoundingClientRect().top) / colorBoard.offsetHeight) * 100);
+          const hue = Math.round((slider.value / 360) * 360);
+          updateColor(hue, saturation, lightness);
+        }
+      });
+
+
+      colorBoard.addEventListener('mousemove', (e) => {
+
+        if (isDragging) {
+          const rect = colorBoard.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          movePicker(x, y);
+          const saturation = Math.round((x / colorBoard.offsetWidth) * 100);
+          const lightness = Math.round(100 - (y / colorBoard.offsetHeight) * 100);
+          const hue = Math.round((slider.value / 360) * 360);
+          updateColor(hue, saturation, lightness);
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      slider.addEventListener('input', (e) => {
+        updateColor(e.target.value);
+      });
+
+      updateColor(slider.value);
+    </script>
+</body>
+</html>
